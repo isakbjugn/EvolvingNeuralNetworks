@@ -18,7 +18,7 @@ vector<shared_ptr<Network>> selectParents(vector<shared_ptr<Network>> &generatio
 
 shared_ptr<Network> findFittest(vector<shared_ptr<Network>> &generation);
 
-void recordRuntime(const vector<shared_ptr<Network>> &generation);
+//void recordRuntime(const vector<shared_ptr<Network>> &generation);
 
 void testNetworkConstructor();
 

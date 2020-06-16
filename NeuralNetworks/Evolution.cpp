@@ -42,8 +42,8 @@ int evolution(int initPopulation, int generations)
 		std::cout << "Generation " << g << "\n";
 
 		// Single thread
-		for (int i = 0; i < population; i++)
-			generation[i]->operator()();
+		/*for (int i = 0; i < population; i++)
+			generation[i]->operator()();*/
 
 		// Naive multithread
 		/*for (int i = 0; i < population; i++)
@@ -60,7 +60,7 @@ int evolution(int initPopulation, int generations)
 			//	generation[i]->operator()();
 
 		// Informed multithread
-		/*for (int group = 0; group < groups; group++)
+		for (int group = 0; group < groups; group++)
 		{
 			std::cout << "Group " << group << "\n";
 
@@ -72,7 +72,7 @@ int evolution(int initPopulation, int generations)
 
 			for (int core = 0; core < cores; core++)
 				threads[core].join();
-		}*/
+		}
 
 		// Print status
 		currentFitness = findFittest(generation)->getKS();
@@ -103,7 +103,7 @@ int evolution(int initPopulation, int generations)
 	}
 
 	// Record time elapsed for first 100 ms simulation
-	recordRuntime(generation);
+	//recordRuntime(generation);
 
 	// Select highest performing Network from generation
 	winner = findFittest(generation);
@@ -168,7 +168,7 @@ shared_ptr<Network> findFittest(vector<shared_ptr<Network>> &generation)
 	return generation[0];
 }
 
-void recordRuntime(const vector<shared_ptr<Network>> &generation)
+/*void recordRuntime(const vector<shared_ptr<Network>> &generation)
 {
 	int pop = generation.size();
 	std::vector<int> t100;
@@ -182,7 +182,7 @@ void recordRuntime(const vector<shared_ptr<Network>> &generation)
 	}
 	saveVector("time-elapsed-100ms.dat", t100);
 	saveVector("num-firings-100ms.dat", f100);
-}
+}*/
 
 void testNetworkConstructor()
 {

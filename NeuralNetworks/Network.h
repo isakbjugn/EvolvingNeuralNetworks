@@ -11,7 +11,8 @@ class Network
 	private:
 		/*Const members*/
 		const int N = 512;				// Number of neurons
-		const int duration = 101;		// Duration of simulation [ms]
+		const int duration = 8000;		// Duration of simulation [ms]
+		const int survival = 150;		// Threshold for which models live
 		/*Genome members*/
 		double balance;					// Ratio of inhibitory neurons
 		int H;							// Hierarchical levels
@@ -35,8 +36,8 @@ class Network
 		mutable double KS;								// Observed Kolmogorov-Smirnov distance
 		mutable std::vector<int> avalanches;			// Avalanche sizes
 		mutable std::unordered_set<int> activeNeurons;	// Active neurons in current avalanche
-		mutable int t100;								// Elapsed time for 100ms simulation
-		mutable int f100;
+		//mutable int t100;								// Elapsed time for 100ms simulation
+		//mutable int f100;
 		mutable bool alive = true;						// Indicate whether killed during simulation
 	public:
 		/*Constructors*/
@@ -73,8 +74,8 @@ class Network
 		double getKS() const { return KS; }
 		int getNeurons() const { return N; }
 		int getDuration() const { return duration; }
-		int getT100() const { return t100; }
-		int getF100() const { return f100; }
+		//int getT100() const { return t100; }
+		//int getF100() const { return f100; }
 		bool isAlive() const { return alive; }
 		/*Export methods*/
 		std::vector<double> exportGenome() const;
@@ -99,3 +100,4 @@ void testVisualize();
 void testSeededCtor();
 std::vector<double> testGenome();
 std::vector<double> goodGenome();
+std::vector<double> veryGoodGenome();

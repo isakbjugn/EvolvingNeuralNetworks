@@ -16,7 +16,7 @@ Network::Network(int seed)
 
 Network::Network(const Network &other)
 {
-	// Quation: Should the current random engine be copied or remade? Currently remade
+	// Question: Should the current random engine be copied or remade? Currently remade
 	
 	// Copy members
 	importGenome(other.exportGenome());
@@ -233,7 +233,7 @@ void Network::createSynapses()
 	int degree;
 	int preModule;
 	int postModule;
-	std::vector<int> degrees = randPowerVector(N, beta, maxDegree, minDegree);
+	std::vector<int> degrees = randPowerVector(N, beta, minDegree, maxDegree);
 	std::vector<int> preModules;
 	std::vector<int> preNeurons;
 	preNeurons.reserve(n);
@@ -289,19 +289,19 @@ void Network::addSynapseWeights()
 	std::uniform_real_distribution<double> exDist(0, exWeight);
 	std::uniform_real_distribution<double> inDist(inWeight, 0);
 
-	for (auto preNeuron = inhibNeurons.begin(); preNeuron != inhibNeurons.end(); preNeuron++)
+	for (int preNeuron = 0; preNeuron < N; preNeuron++)
 	{
 		for (int postNeuron = 0; postNeuron < N; postNeuron++)
 		{
-			if (S(*preNeuron, postNeuron))
+			if (S(preNeuron, postNeuron))
 			{
-				if (*preNeuron)
-					S(*preNeuron, postNeuron) = inDist(engine);
+				if (inhibNeurons[preNeuron])
+					S(preNeuron, postNeuron) = inDist(engine);
 				else
-					S(*preNeuron, postNeuron) = exDist(engine);
+					S(preNeuron, postNeuron) = exDist(engine);
 			}
 		}
-	}		
+	}
 }
 
 /*Function methods*/
@@ -322,23 +322,43 @@ void Network::run() const
 
 	// Start clock
 	auto start = std::chrono::high_resolution_clock::now();
+	int checkpoint = 100;
+	if (checkpoint >= duration)
+		std::cout << "Error in Network::run(): Checkpoint exceeds duration\n";
 
-	for (int t = 0; t < duration; t++)
+	for (int t = 0; t < checkpoint; t++)
 	{
-		// Print status
-		if (t == 100)
-		{
-			auto stop = std::chrono::high_resolution_clock::now();
-			auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
-			t100 = time.count();
-			f100 = numFired;
+		// Stochastic thalamic input
+		makeNoise(I);
 
-			if (time.count() > t * 200)
-			{
-				kill();
-				return;
-			}
-		}
+		// Find spiking events
+		fired = v.find(30);
+		numFired += fired.size();
+
+		// Update activity variables
+		updateAvalanches(fired, t);
+		v.update(c, fired);
+		u.update(u + d, fired);
+		synapticCurrent(I, fired);
+
+		for (int i = 0; i < 2; i++)
+			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
+		u += a.hadamard(b.hadamard(v) - u);
+	}
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+	//t100 = time.count();
+	//f100 = numFired;
+
+	if (time.count() > checkpoint * survival)
+	{
+		kill();
+		return;
+	}
+
+	for (int t = checkpoint; t < duration; t++)
+	{
 
 		// Stochastic thalamic input
 		makeNoise(I);
@@ -664,7 +684,7 @@ std::vector<int> Network::randPowerVector(int length, double exponent, int min, 
 	int number;
 
 	// Fill vector
-	for (int x = max; x >= max; x--)
+	for (int x = max; x >= min; x--)
 	{
 		density = pow(x, (-exponent)) * normalization;
 		number = (int)floor(density * length); // Floor vs. round vs. ceil affects total length
@@ -679,7 +699,7 @@ std::vector<int> Network::randPowerVector(int length, double exponent, int min, 
 
 	// Correct number of elements (subject to rounding variations)
 	while (result.size() > (size_t)length)
-		result.erase(result.end());
+		result.pop_back();
 	while (result.size() < (size_t)length)
 		result.push_back(min);
 
@@ -722,6 +742,23 @@ std::vector<double> goodGenome()
 		2.37324,
 		1.56954,
 		-1
+	};
+}
+
+std::vector<double> veryGoodGenome()
+{
+	return std::vector<double>
+	{
+		0.29,
+		2,
+		8,
+		104,
+		1.69871,
+		1.5153,
+		4.11085,
+		2.55698,
+		0.239477,
+		-1.56041
 	};
 }
 
@@ -768,3 +805,10 @@ void testSeededCtor()
 	}
 }
 
+void testRandPowerVector()
+{
+	int xMin = 1;
+	int xMax = 20;
+	double alpha = 2;
+	int N = 100;
+}
