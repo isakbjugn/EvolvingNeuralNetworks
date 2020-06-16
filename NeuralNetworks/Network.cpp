@@ -492,7 +492,8 @@ double Network::analyze() const
 		cout << "Error in Network::analyze(): Avalanche size vector is empty\n";
 
 	//std::pair<double, double> alphaKappa = searchAlpha(avalanches, 1);
-	std::pair<double, double> alphaFitness = clauset(avalanches);
+	//std::pair<double, double> alphaFitness = clauset(avalanches);
+	std::pair<double, double> alphaFitness = alphaFromKS(avalanches);
 	alpha = alphaFitness.first;
 	//kappa = alphaFitness.second;
 	KS = alphaFitness.second;

@@ -16,7 +16,7 @@ int main()
 	auto start = high_resolution_clock::now();
 
 	// Run function
-	evolution(50, 20);
+	evolution(10, 1);
 
 	// End timer
 	auto stop = high_resolution_clock::now();

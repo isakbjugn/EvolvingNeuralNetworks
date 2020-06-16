@@ -321,6 +321,41 @@ std::vector<double> makePowerLawDistribution(double alpha, int length)
 	return pdf;
 }
 
+std::pair<double, double> alphaFromKS(const std::vector<int>& sizes, int x0)
+{
+	// Initialize parameters
+	std::pair<double, double> alphaKS(-1, 100.0);
+	double KS;
+	double start = 1.1;
+
+	// Initialize variables
+	std::vector<double> pdf_emp = samplesToPdf(sizes);
+	int n = pdf_emp.size();
+	std::vector<double> pdf_theory;
+
+	// Perform course scan
+	double stepSize = 0.1;
+	for (double alpha = 1.1; alpha < start + 2; alpha += stepSize)
+	{
+		pdf_theory = makePowerLawDistribution(alpha, n); // Currently assumes x0 = 1
+		KS = calculateKS(pdf_theory, pdf_emp, x0, n);
+		if (abs(KS) < abs(alphaKS.second))
+			alphaKS = std::make_pair(alpha, KS);
+	}
+
+	// Perform fine scan
+	stepSize = 0.01;
+	start = alphaKS.first - 0.1;
+	for (double alpha = start; alpha < start + 0.2; alpha += stepSize)
+	{
+		pdf_theory = makePowerLawDistribution(alpha, n); // Currently assumes x0 = 1
+		KS = calculateKS(pdf_theory, pdf_emp, x0, n);
+		if (abs(KS) < abs(alphaKS.second))
+			alphaKS = std::make_pair(alpha, KS);
+	}
+	return alphaKS;
+}
+
 /*Tests*/
 void testReadVector()
 {

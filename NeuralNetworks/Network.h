@@ -11,7 +11,7 @@ class Network
 	private:
 		/*Const members*/
 		const int N = 512;				// Number of neurons
-		const int duration = 8000;		// Duration of simulation [ms]
+		const int duration = 2000;		// Duration of simulation [ms]
 		const int survival = 150;		// Threshold for which models live
 		/*Genome members*/
 		double balance;					// Ratio of inhibitory neurons
