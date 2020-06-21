@@ -15,12 +15,10 @@ double calculateKS(const std::vector<double> &pdf_theory, const std::vector<doub
 double calculateKS(const std::vector<double> &pdf_theory, const std::vector<double> &pdf_emp);
 std::vector<int> logSpacing(int x0, int x1, int m = 10);
 std::vector<double> makePowerLawDistribution(double alpha, int length);
-double mle(const std::vector<double> &pdf, int x0 = 1);
 double mle(const std::vector<int> &sizes, int x0 = 1);
 double mleSearch(const std::vector<int> &sizes, int x0 = 1);
 double mleSearch(const std::vector<double> &sizes, int x0 = 1);
 double maxLikelihood(double g, int x0, int x1);
-std::pair<double, double> searchAlpha(const std::vector<double> &pdf_emp, int x0 = 1);
 std::pair<double, double> searchAlpha(const std::vector<int> &sizes, int x0 = 1);
 std::pair<double, double> clauset(const std::vector<int> &sizes);
 std::pair<double, double> alphaFromKS(const std::vector<int>& sizes, int x0 = 1);
@@ -29,6 +27,5 @@ std::pair<double, double> alphaFromKS(const std::vector<int>& sizes, int x0 = 1)
 void testReadVector();
 void testKappa();
 void testKS();
-void testSearchAlpha();
 void testAvalancheDetection();
 void testMle();

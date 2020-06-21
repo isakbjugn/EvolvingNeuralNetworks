@@ -36,8 +36,6 @@ class Network
 		mutable double KS;								// Observed Kolmogorov-Smirnov distance
 		mutable std::vector<int> avalanches;			// Avalanche sizes
 		mutable std::unordered_set<int> activeNeurons;	// Active neurons in current avalanche
-		//mutable int t100;								// Elapsed time for 100ms simulation
-		//mutable int f100;
 		mutable bool alive = true;						// Indicate whether killed during simulation
 	public:
 		/*Constructors*/
@@ -62,7 +60,6 @@ class Network
 		void run() const;
 		void updateAvalanches(const std::vector<int> &fired, int t) const;
 		void visualize() const;
-		void visualize2() const;
 		double analyze() const;
 		void makeNoise(Vector& I) const;
 		void synapticCurrent(Vector &I, const std::vector<int> &fired) const;
@@ -75,8 +72,6 @@ class Network
 		double getAlpha() const { return alpha; }
 		int getNeurons() const { return N; }
 		int getDuration() const { return duration; }
-		//int getT100() const { return t100; }
-		//int getF100() const { return f100; }
 		bool isAlive() const { return alive; }
 		/*Export methods*/
 		std::vector<double> exportGenome() const;

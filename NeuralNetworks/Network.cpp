@@ -408,46 +408,6 @@ void Network::visualize() const
 	Vector v = Vector(N, -65);
 	Vector u = b.hadamard(v);
 
-	// Record all firings
-	std::vector<int> fireTiming = std::vector<int>();
-	fireTiming.reserve(10 * N);
-	std::vector<int> fireNeuron = std::vector<int>();
-	fireNeuron.reserve(10 * N);
-	std::vector<int> fired = std::vector<int>();
-	fired.reserve(N);
-
-	// Define input current vectors
-	Vector I = Vector(N);
-
-	for (int t = 0; t < duration; t++)
-	{
-		// Stochastic thalamic input
-		makeNoise(I);
-
-		// Find spiking events
-		fired = v.find(30);
-
-		// Update activity variables
-		updateFirings(fireTiming, fireNeuron, fired, t);
-		v.update(c, fired);
-		u.update(u + d, fired);
-		synapticCurrent(I, fired);
-
-		for (int i = 0; i < 2; i++)
-			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
-		u += a.hadamard(b.hadamard(v) - u);
-	}
-
-	// Write firing events to file
-	writeToFile("network-activity.dat", fireTiming, fireNeuron);
-}
-
-void Network::visualize2() const
-{
-	// Activity variables
-	Vector v = Vector(N, -65);
-	Vector u = b.hadamard(v);
-
 	// Record firings for a given time step
 	std::vector<int> fired = std::vector<int>();
 	fired.reserve(N);
@@ -457,7 +417,7 @@ void Network::visualize2() const
 
 	// Open file
 	std::ofstream myfile;
-	myfile.open("visualize2.dat", std::ios::trunc);
+	myfile.open("network-activity.dat", std::ios::trunc);
 
 	for (int t = 0; t < duration; t++)
 	{
@@ -787,7 +747,7 @@ void testRandNormal()
 void testVisualize()
 {
 	Network Moses;
-	Moses.visualize2();
+	Moses.visualize();
 }
 
 void testSeededCtor()

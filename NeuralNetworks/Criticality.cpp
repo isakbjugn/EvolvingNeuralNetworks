@@ -133,27 +133,6 @@ double calculateKS(const std::vector<double> &pdf_theory, const std::vector<doub
 	return max;
 }
 
-double mle(const std::vector<double> &pdf, int x0)
-{
-	// Uses pdf, converts into samples
-	
-	// Only alphas within a given range should be accepted, e.g. [1, 3]
-
-	int n = pdf.size();
-	double alpha = 0;
-
-	// Scale up from pdf to histogram of observations
-	std::vector<int> observations = histogramToSamples(pdf);
-
-	for (auto it = observations.begin(); it != observations.end(); it++)
-	{
-		//alpha += log(*it / (double)(x0 - 0.5));	// Discrete version
-		alpha += log(*it / (double)x0);				// Continuous version
-	}
-
-	return 1 + n * (1 / double(alpha));
-}
-
 double mle(const std::vector<int> &sizes, int x0)
 {
 	// Uses sizes, a list of all observations (not a histogram)
@@ -243,26 +222,6 @@ double maxLikelihood(double g, int x0, int x1)
 		}
 	}
 	return alphaHat;
-}
-
-std::pair<double, double> searchAlpha(const std::vector<double> &pdf_emp, int x0)
-{
-	int n = pdf_emp.size();
-	int xShift = 1;
-	double alpha;
-	double kappa;
-	std::pair<double, double> alphaKappa( 0, 100.0 );
-	std::vector<double> pdf_theory;
-
-	for (int xmin = x0; xmin < x0 + xShift; xmin++) // Does not work for xmin > 1 !!!! 
-	{
-		alpha = mle(pdf_emp, xmin);
-		pdf_theory = makePowerLawDistribution(alpha, n); // Currently assumes x0 = 1
-		kappa = calculateKappa(pdf_theory, pdf_emp, xmin, n);
-		if (abs(kappa - 1) < abs(alphaKappa.second - 1))
-			alphaKappa = std::make_pair(alpha, kappa);
-	}
-	return alphaKappa;
 }
 
 std::pair<double, double> searchAlpha(const std::vector<int> &sizes, int x0)
@@ -378,13 +337,6 @@ void testKS()
 	double KS = calculateKS(pdf_theory, pdf_emp);
 	cout << std::setprecision(5) << std::fixed;
 	cout << "D_KS is " << KS << "\n";
-}
-
-void testSearchAlpha()
-{
-	std::vector<double> pdf_emp = readVector("pdf_emp.dat");
-	std::pair<double, double> alphaKappa = searchAlpha(pdf_emp, 1);
-	cout << "Alpha = " << alphaKappa.first << " gives kappa = " << alphaKappa.second << "\n";
 }
 
 void testAvalancheDetection()
