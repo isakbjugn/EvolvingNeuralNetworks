@@ -72,6 +72,7 @@ class Network
 		/*Get methods*/
 		double getKappa() const { return kappa; }
 		double getKS() const { return KS; }
+		double getAlpha() const { return alpha; }
 		int getNeurons() const { return N; }
 		int getDuration() const { return duration; }
 		//int getT100() const { return t100; }

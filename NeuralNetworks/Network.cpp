@@ -351,7 +351,7 @@ void Network::run() const
 	//t100 = time.count();
 	//f100 = numFired;
 
-	if (time.count() > checkpoint * survival)
+	if ((int)time.count() > checkpoint * survival)
 	{
 		kill();
 		return;

@@ -116,6 +116,7 @@ int evolution(int initPopulation, int generations)
 
 	// Produce fitness statistics
 	saveVector("fitness-vector.dat", fitnesses);
+	std::cout << "Winner alpha: " << winner->getAlpha() << "\n";
 
 	return 0;
 }
