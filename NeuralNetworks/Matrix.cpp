@@ -172,28 +172,34 @@ Matrix::Matrix(int rows, int columns, double lower, double upper)
 
 void Matrix::randomize(double lower, double upper)
 {
-	//static thread_local std::random_device device;
-	static thread_local std::mt19937 generator;
+	std::random_device device;
+	std::mt19937 generator(device());
 	std::uniform_real_distribution<> uniform(lower, upper);
 
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		data[i] = uniform(generator);
+	}
 }
 
 void Matrix::randNormal(double mean, double stddev)
 {
-	//static thread_local std::random_device device;
-	static thread_local std::mt19937 generator;
+	static std::random_device device;
+	static std::mt19937 generator(device());
 	std::normal_distribution<> normal(mean, stddev); // This can't be declared static
 
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		data[i] = normal(generator);
+	}
 }
 
 void Matrix::randNormal(std::mt19937 & generator, std::normal_distribution<> & dist)
 {
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		data[i] = dist(generator);
+	}
 }
 
 
@@ -201,17 +207,22 @@ Matrix::Matrix(const Matrix & top, const Matrix & bottom)
 	: Matrix(top.rows + bottom.rows, top.columns)
 {
 	if (top.columns != bottom.columns)
+	{
 		this->invalidate();
+	}
 
 	for (unsigned int i = 0; i < top.rows + bottom.rows; i++)
 	{
 		for (unsigned int j = 0; j < this->columns; j++)
 		{
 			if (i < top.rows)
+			{
 				this->at(i, j) = top.at(i, j);
-
+			}
 			else
+			{
 				this->at(i, j) = bottom.at(i - top.rows, j);
+			}
 		}
 	}
 }
@@ -220,11 +231,12 @@ void Matrix::populate()
 {
 	std::vector<int> numbers = std::vector<int>(rows*columns);
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		numbers[i] = i;
-
-	//std::random_device rd;
-	static thread_local std::mt19937 generator;
-	std::shuffle(numbers.begin(), numbers.end(), generator);
+	}
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(numbers.begin(), numbers.end(), g);
 
 	for (unsigned int i = 0; i < rows*columns; i++)
 	{
@@ -236,8 +248,9 @@ void Matrix::populate()
 Matrix & Matrix::operator+=(double rhs)
 {
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		data[i] += rhs;
-
+	}
 	return *this;
 }
 
@@ -271,9 +284,13 @@ Matrix & Matrix::extend(const Matrix & rhs)
 		for (unsigned int j = 0; j < this->columns; j++)
 		{
 			if (i < this->rows)
+			{
 				temp.at(i, j) = this->at(i, j);
+			}
 			else
+			{
 				temp.at(i, j) = rhs.at(i - this->rows, j);
+			}
 		}
 	}
 	return *this = temp;
@@ -293,10 +310,13 @@ Matrix & Matrix::expand(const Matrix & rhs)
 		for (unsigned int j = 0; j < this->columns + rhs.columns; j++)
 		{
 			if (j < this->columns)
+			{
 				temp.at(i, j) = this->at(i, j);
-
+			}
 			else
+			{
 				temp.at(i, j) = rhs.at(i, j - this->columns);
+			}
 		}
 	}
 	return *this = temp;
@@ -306,8 +326,9 @@ Matrix Matrix::operator^(double rhs) const
 {
 	Matrix temp(rows, columns);
 	for (unsigned int i = 0; i < rows*columns; i++)
+	{
 		temp.data[i] = pow(this->data[i], rhs);
-
+	}
 	return temp;
 }
 
@@ -327,7 +348,9 @@ Matrix Matrix::operator>=(double rhs) const
 	for (unsigned int i = 0; i < rows*columns; i++)
 	{
 		if (data[i] >= rhs)
+		{
 			result.data[i] = 1;
+		}
 	}
 	return result;
 }
@@ -335,12 +358,15 @@ Matrix Matrix::operator>=(double rhs) const
 Matrix Matrix::hadamard(const Matrix & rhs) const
 {
 	if (this->rows != rhs.rows)
+	{
 		return Matrix();
+	}
 
 	Matrix temp(rows, columns);
 	for (unsigned int i = 0; i < this->rows*this->columns; i++)
+	{
 		temp.data[i] = this->data[i] * rhs.data[i];
-
+	}
 	return temp;
 }
 

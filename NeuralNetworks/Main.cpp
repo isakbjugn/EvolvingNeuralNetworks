@@ -28,12 +28,10 @@ int main()
 	//testSearchAlpha();
 	//testAvalancheDetection();
 	//testMle();
-	evolution(10, 1);
+	evolution(10, 10);
 	//testNetworkConstructor();
 	//testVisualize();
 	//testNetworkCopyCtor();
-	//testSeededCtor();
-	//testSpeed();
 
 	// End timer
 	auto stop = high_resolution_clock::now();
