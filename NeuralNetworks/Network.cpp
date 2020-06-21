@@ -436,7 +436,7 @@ void Network::visualize() const
 	}
 
 	// Write firing events to file
-	writeToFile("visualize1.dat", fireTiming, fireNeuron);
+	writeToFile("network-activity.dat", fireTiming, fireNeuron);
 }
 
 void Network::visualize2() const
