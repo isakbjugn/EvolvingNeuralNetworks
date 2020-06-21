@@ -6,6 +6,7 @@
 #include "Criticality.h"
 #include "Evolution.h"
 
+
 using namespace std::chrono;
 using std::cout;
 
@@ -24,3 +25,4 @@ int main()
 
 	return  0;
 }
+

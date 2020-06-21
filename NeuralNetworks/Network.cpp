@@ -2,27 +2,25 @@
 
 /*Constructors*/
 
-Network::Network()
+Network::Network(int seed)
 {
-	// Make genome
-	newGenome();
-	//testGenome();
+	// Initialize random engine
+	engine = startEngine(seed);
 
-	// Initilize network structure
+	// Make new genome
+	importGenome(newGenome());
+
+	// Initialize network structure
 	initialize();
-	initializeIzhikevich();
-	createSynapses();
-	addSynapseWeights();
-
-	// Reset performance variables
-	clear();
 }
 
 Network::Network(const Network &other)
 {
+	// Question: Should the current random engine be copied or remade? Currently remade
+	
 	// Copy members
 	importGenome(other.exportGenome());
-	initialize();
+	defineNeurons();
 	S = other.S;
 	a = other.a;
 	b = other.b;
@@ -38,59 +36,52 @@ Network::Network(const Network &other)
 
 	if (activeNeurons.size())
 		cout << "Error in ctor Network(const Network &other): vector activeNeurons not empty\n";
+
+	// Initialize engine
+	engine = startEngine();
 }
 
-Network::Network(int neurons)
+Network::Network(const Network& mom, const Network& dad, int seed)
 {
-	newGenome();
-	
-	// Initialize
-	H = 1;
-	n = N;
-	Ne = n;
-	Ni = 0;
-	ne = n;
-	ni = 0;
-	inhibNeurons = std::vector<int>(neurons, 0);
-	a = Vector(neurons, 1);
-	b = Vector(neurons, 2);
-	c = Vector(neurons, 3);
-	d = Vector(neurons, 4);
+	// Initialize engine
+	engine = startEngine(seed);
 
-	// Initialize connectivity matrix
-	S = Matrix(neurons);
-	S.populate();
-
-	// Initialize performance variables
-	clear();
-	avalanches = std::vector<int>{ 1, 1, 1, 2, 2, 3 };
-	activeNeurons = std::unordered_set<int>();
-}
-
-Network::Network(const Network& mom, const Network& dad)
-{
 	// Combine genomes
-	std::vector<double> momGenome = mom.exportGenome();
-	std::vector<double> dadGenome = dad.exportGenome();
-	int genes = momGenome.size();
-	int splice = randomIntWithLimits(0, genes - 1);
+	combineGenomes(mom.exportGenome(), dad.exportGenome());		// Draw approachh
+	//spliceGenomes(mom.exportGenome(), dad.exportGenome());	// Splice approach
 
-	std::vector<double> newGenome(genes);
-	for (int i = 0; i < splice; i++)
-		newGenome[i] = momGenome[i];
-	for (int i = splice; i < genes; i++)
-		newGenome[i] = dadGenome[i];
-
-	// Incorporate genome, with mutations
-	importGenome(newGenome);
+	// Mutate genome	
 	mutate();
-
-	// Avoid more synapses than neurons in module (with high gamma)
-	if (maxDegree > n)
-		maxDegree = n;
 
 	// Initialize network structure
 	initialize();
+}
+
+/*Operators*/
+
+Network Network::operator= (Network rhs)
+{
+	return rhs;
+}
+
+void Network::operator()()
+{
+	run();
+
+	if (alive)
+	{
+		analyze();
+		std::cout << "Thread " << std::this_thread::get_id() << " finished\n";
+
+	}
+}
+
+/*Initialization methods*/
+
+void Network::initialize()
+{
+	// Initilize network structure
+	defineNeurons();
 	initializeIzhikevich();
 	createSynapses();
 	addSynapseWeights();
@@ -99,67 +90,25 @@ Network::Network(const Network& mom, const Network& dad)
 	clear();
 }
 
-/*Operators*/
-
-Network Network::operator= (Network rhs)
+std::vector<double> Network::newGenome() const
 {
-	std::swap(this->a, rhs.a);
-	std::swap(this->b, rhs.b);
-	std::swap(this->c, rhs.c);
-	std::swap(this->d, rhs.d);
-	std::swap(this->S, rhs.S);
-	std::swap(this->S, rhs.S);
-	return rhs;
-}
+	// Remember to check the limits of n after calling this
 
-void Network::operator()()
-{
-	run(); // So far so good
-	analyze();
-}
-
-/*Initialization methods*/
-
-void Network::newGenome()
-{
-	// Seems to be error when maxDegree is equal to number of neurons total
-
-	H = randomIntWithLimits(1, 5);
-	M = (int)pow(2, H - 1);
-	n = N / M;
-	balance = 0.01 * randomIntWithLimits(20, 30);
-	minDegree = randomIntWithLimits(1, 30);
-	maxDegree = randomIntWithLimits(minDegree, n);
-
-	//if (H == 1)
-	//	maxDegree = randomIntWithLimits(minDegree, N/2);
-
-	beta = randomRealWithLimits(1.0, 2.0); // Massobrio et al. (2015)
-	gamma = randomRealWithLimits(1.5, 3.0); // Rubinov et al. (2011)
-	exNoise = randomRealWithLimits(4.0, 6.0);
-	inNoise = randomRealWithLimits(1.0, 3.0);
-	exWeight = randomRealWithLimits(0.1, 2.0);
-	inWeight = randomRealWithLimits(-2.0, -0.1);
-
-	/*Other parameters discussed*/
+	return std::vector<double>
+	{
+		0.01 * randInt(20, 30),
+		(double)randInt(1, 5),
+		(double)randInt(1, 30),
+		(double)randInt(1, N),
+		randReal(1.0, 2.0),
+		randReal(1.5, 3.0),
+		randReal(4.0, 6.0),
+		randReal(1.0, 3.0),
+		randReal(0.1, 2.0),
+		randReal(-2.0, -0.1)
+	};
 	// Izhikevich parameters a, b, c, d (mean, variance)
-	// Incoming degree mean (rather than exponent, min and max)	
-}
-
-void Network::testGenome()
-{
-	H = 1;
-	M = (int)pow(2, H - 1);
-	n = N / M;
-	balance = 0.2;
-	minDegree = 10;
-	maxDegree = 128;
-	beta = 0.0;
-	gamma = 2;
-	exNoise = 5;
-	inNoise = 2;
-	exWeight = 0.5;
-	inWeight = -1;
+	// Incoming degree mean (rather than exponent, min and max)*/
 }
 
 void Network::importGenome(const std::vector<double> &genome)
@@ -174,9 +123,37 @@ void Network::importGenome(const std::vector<double> &genome)
 	inNoise = genome[7];
 	exWeight = genome[8];
 	inWeight = genome[9];
+
+	// Check limits of n
+	n = N / (int)pow(2, H - 1);
+	if (maxDegree > n || maxDegree < minDegree)
+		maxDegree = randInt(minDegree, n);
 }
 
-void Network::initialize()
+void Network::combineGenomes(const std::vector<double> &momGenome, const std::vector<double> &dadGenome)
+{
+	std::vector<double> genome = momGenome;
+	for (size_t i = 0; i < genome.size(); i++)
+	{
+		if (randReal() < 0.5)
+			genome[i] = dadGenome[i];
+	}
+
+	importGenome(genome);
+}
+
+void Network::spliceGenomes(const std::vector<double> &momGenome, const std::vector<double> &dadGenome)
+{
+	std::vector<double> genome = momGenome;
+	int genes = genome.size();
+	int splice = randInt(0, genes - 1);
+	for (int i = splice; i < genes; i++)
+		genome[i] = dadGenome[i];
+
+	importGenome(genome);
+}
+
+void Network::defineNeurons()
 {
 	// Calculate network parameters
 	M = (int)pow(2, H - 1);
@@ -197,39 +174,25 @@ void Network::initialize()
 
 void Network::mutate()
 {
-	double mutateChance = 0.02;
+	// Incorporates one mutation into genome
 
-	if (randUniform() < mutateChance)
-		H = randomIntWithLimits(1, 5);
-
-	M = (int)pow(2, H - 1);
-	n = N / M;
-
-	if (randUniform() < mutateChance)
-		balance = 0.01 * randomIntWithLimits(20, 30);
-	if (randUniform() < mutateChance)
-		minDegree = randomIntWithLimits(1, 30);
-	if (randUniform() < mutateChance)
-		maxDegree = randomIntWithLimits(minDegree, n);
-	if (randUniform() < mutateChance)
-		beta = randomRealWithLimits(1.0, 2.0); // Massobrio et al. (2015)
-	if (randUniform() < mutateChance)
-		gamma = randomRealWithLimits(1.5, 3.0); // Rubinov et al. (2011)
-	if (randUniform() < mutateChance)
-		exNoise = randomRealWithLimits(4.0, 6.0);
-	if (randUniform() < mutateChance)
-		inNoise = randomRealWithLimits(1.0, 3.0);
-	if (randUniform() < mutateChance)
-		exWeight = 0.5;
-	if (randUniform() < mutateChance)
-		inWeight = -1.0;
+	std::vector<double> mew = this->exportGenome();
+	std::vector<double> mewtwo = this->newGenome();
+	int locus = randInt(0, mew.size() - 1);
+	mew[locus] = mewtwo[locus];
+	importGenome(mew);
 }
 
 void Network::initializeIzhikevich()
 {
 	// Random vectors
-	Vector re = Vector(Ne, 0, 1);
-	Vector ri = Vector(Ni, 0, 1);
+	Vector re = Vector(Ne);
+	for (int i = 0; i < Ne; i++)
+		re(i) = randReal();
+
+	Vector ri = Vector(Ni);
+	for (int i = 0; i < Ni; i++)
+		ri(i) = randReal();
 
 	int exIdx = 0;
 	int inIdx = 0;
@@ -270,7 +233,7 @@ void Network::createSynapses()
 	int degree;
 	int preModule;
 	int postModule;
-	std::vector<int> degrees = powerLawVector(N, beta, maxDegree, minDegree);
+	std::vector<int> degrees = randPowerVector(N, beta, minDegree, maxDegree);
 	std::vector<int> preModules;
 	std::vector<int> preNeurons;
 	preNeurons.reserve(n);
@@ -288,7 +251,7 @@ void Network::createSynapses()
 
 		// Find presynaptic modeles
 		postModule = getPostModule(postNeuron, N, M);
-		preModules = getPreModuleVector(degree, postModule, H);
+		preModules = getPreModuleVector(degree, postModule);
 		moduleCount = countOccurences(preModules);
 
 		for (auto it = moduleCount.begin(); it != moduleCount.end(); it++)
@@ -299,7 +262,7 @@ void Network::createSynapses()
 				cout << "Error in createSynapses(): More synapses than neurons in module\n";
 
 			// Treat excitatory and inhibitory neurons equally
-			preNeurons = randomIntVector(n, preModule*n);
+			preNeurons = randIntVector(n, preModule*n);
 
 			for (int i = 0; i < it->second; i++)
 			{
@@ -323,28 +286,28 @@ void Network::createSynapses()
 
 void Network::addSynapseWeights()
 {
-	for (auto preNeuron = inhibNeurons.begin(); preNeuron != inhibNeurons.end(); preNeuron++)
+	std::uniform_real_distribution<double> exDist(0, exWeight);
+	std::uniform_real_distribution<double> inDist(inWeight, 0);
+
+	for (int preNeuron = 0; preNeuron < N; preNeuron++)
 	{
 		for (int postNeuron = 0; postNeuron < N; postNeuron++)
 		{
-			if (S(*preNeuron, postNeuron))
+			if (S(preNeuron, postNeuron))
 			{
-				if (*preNeuron)
-					S(*preNeuron, postNeuron) = randomRealWithLimits(inWeight, 0);
+				if (inhibNeurons[preNeuron])
+					S(preNeuron, postNeuron) = inDist(engine);
 				else
-					S(*preNeuron, postNeuron) = randomRealWithLimits(0, exWeight);
+					S(preNeuron, postNeuron) = exDist(engine);
 			}
 		}
-	}		
+	}
 }
 
 /*Function methods*/
 
 void Network::run() const
 {
-	// Reset activity variables?
-	//clear();
-
 	// Activity variables
 	Vector v = Vector(N, -65);
 	Vector u = b.hadamard(v);
@@ -352,23 +315,63 @@ void Network::run() const
 	// Record firings for a given time step
 	std::vector<int> fired = std::vector<int>();
 	fired.reserve(N);
+	int numFired = 0;
 
 	// Define input current vectors
 	Vector I = Vector(N);
 
-	for (int t = 0; t < duration; t++)
+	// Start clock
+	auto start = std::chrono::high_resolution_clock::now();
+	int checkpoint = 100;
+	if (checkpoint >= duration)
+		std::cout << "Error in Network::run(): Checkpoint exceeds duration\n";
+
+	for (int t = 0; t < checkpoint; t++)
 	{
 		// Stochastic thalamic input
 		makeNoise(I);
 
 		// Find spiking events
 		fired = v.find(30);
+		numFired += fired.size();
 
 		// Update activity variables
 		updateAvalanches(fired, t);
 		v.update(c, fired);
 		u.update(u + d, fired);
-		I += synapticCurrent(S, fired);
+		synapticCurrent(I, fired);
+
+		for (int i = 0; i < 2; i++)
+			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
+		u += a.hadamard(b.hadamard(v) - u);
+	}
+
+	auto stop = std::chrono::high_resolution_clock::now();
+	auto time = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start);
+	//t100 = time.count();
+	//f100 = numFired;
+
+	if ((int)time.count() > checkpoint * survival)
+	{
+		kill();
+		return;
+	}
+
+	for (int t = checkpoint; t < duration; t++)
+	{
+
+		// Stochastic thalamic input
+		makeNoise(I);
+
+		// Find spiking events
+		fired = v.find(30);
+		numFired += fired.size();
+
+		// Update activity variables
+		updateAvalanches(fired, t);
+		v.update(c, fired);
+		u.update(u + d, fired);
+		synapticCurrent(I, fired);
 
 		for (int i = 0; i < 2; i++)
 			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
@@ -428,7 +431,7 @@ void Network::visualize() const
 		updateFirings(fireTiming, fireNeuron, fired, t);
 		v.update(c, fired);
 		u.update(u + d, fired);
-		I += synapticCurrent(S, fired);
+		synapticCurrent(I, fired);
 
 		for (int i = 0; i < 2; i++)
 			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
@@ -471,7 +474,7 @@ void Network::visualize2() const
 		// Update activity variables
 		v.update(c, fired);
 		u.update(u + d, fired);
-		I += synapticCurrent(S, fired);
+		synapticCurrent(I, fired);
 
 		for (int i = 0; i < 2; i++)
 			v += 0.5 * ((0.04 * (v ^ 2)) + (5 * v) + 140 - u + I);
@@ -489,7 +492,8 @@ double Network::analyze() const
 		cout << "Error in Network::analyze(): Avalanche size vector is empty\n";
 
 	//std::pair<double, double> alphaKappa = searchAlpha(avalanches, 1);
-	std::pair<double, double> alphaFitness = clauset(avalanches);
+	//std::pair<double, double> alphaFitness = clauset(avalanches);
+	std::pair<double, double> alphaFitness = alphaFromKS(avalanches);
 	alpha = alphaFitness.first;
 	//kappa = alphaFitness.second;
 	KS = alphaFitness.second;
@@ -498,16 +502,48 @@ double Network::analyze() const
 
 void Network::makeNoise(Vector& I) const
 {
+
+	std::normal_distribution<double> exDist(0, exNoise);
+	std::normal_distribution<double> inDist(0, exNoise);
+
 	for (int neuron = 0; neuron < N; neuron++)
 	{
 		// Noise to excitatory neurons
 		if (!inhibNeurons[neuron])
-			I(neuron) = randNormal(0, exNoise);
+			I(neuron) = exDist(engine);
 
 		// Noise to inhibitory neurons
 		else
-			I(neuron) = randNormal(0, inNoise);
+			I(neuron) = inDist(engine);
 	}
+}
+
+void Network::synapticCurrent(Vector &I, const std::vector<int> &fired) const
+{
+	for (unsigned int i = 0; i < S.getRows(); i++)
+	{
+		for (auto it = fired.begin(); it != fired.end(); it++)
+		{
+			I(i) += S(i, *it);
+		}
+	}
+}
+
+std::vector<int> Network::getPreModuleVector(int connections, int postModule) const
+{
+	std::vector<int> preModules;
+	preModules.reserve(connections);
+
+	std::vector<int> levels = randPowerVector(connections, gamma, 1, H);
+	for (auto it = levels.begin(); it != levels.end(); it++)
+		preModules.push_back(getPreModule(postModule, H, *it));
+
+	return preModules;
+
+	// Alternative: Draw independent h's
+	//for (int i = 0; i < connections; i++)
+	//	preModules.push_back(getPreModule(postModule, hierarchyDepth));
+	//return preModules;
 }
 
 void Network::clear() const
@@ -519,6 +555,13 @@ void Network::clear() const
 	alpha = -1;
 	kappa = -1;
 	KS = 1;
+}
+
+void Network::kill() const
+{
+	alive = false;
+	std::cout << "Thread " << std::this_thread::get_id() << " killed\n";
+	clear();
 }
 
 /*Export methods*/
@@ -550,9 +593,11 @@ void Network::exportParameters() const
 {
 	std::ofstream myfile;
 	myfile.open("network-parameters.txt", std::ios::trunc);
-	myfile << &std::chrono::system_clock::now();
-	myfile << "\nBalance: " << this->balance
-		<< "\nH: " << this->H
+	myfile << currentDateTime();
+	myfile << "\nNeurons: " << this->N
+		<< "\nDuration: " << this->duration
+		<< "\nInhibition ratio: " << this->balance
+		<< "\nHierarchical levels: " << this->H
 		<< "\nMinimum degree:" << minDegree
 		<< "\nMaximum degree:" << maxDegree
 		<< "\nBeta:" << beta
@@ -578,9 +623,145 @@ bool Network::sortByKS(const std::shared_ptr<Network> &a1, const std::shared_ptr
 {
 	// Question: is a1 better than a2?
 
-	return a1->KS < a2->KS;
+	return abs(a1->KS) < abs(a2->KS);
 }
 
+/*Random methods*/
+
+std::mt19937 Network::startEngine(int seed)
+{
+	if (seed)
+		return std::mt19937(seed);
+
+	std::random_device rd;
+	return std::mt19937(rd());
+}
+
+int Network::randInt(int a, int b) const
+{
+	std::uniform_int_distribution<> dist(a, b);
+	return dist(engine);
+}
+
+double Network::randReal(double a , double b) const
+{
+	std::uniform_real_distribution<> dist(a, b);
+	return dist(engine);
+}
+
+double Network::randNormal(double mu, double sigma) const
+{
+	std::normal_distribution<> dist(mu, sigma);
+	return dist(engine);
+}
+
+std::vector<int> Network::randIntVector(int length, int min) const
+{
+	std::vector<int> result;
+	result.reserve(length);
+	for (int i = 0; i < length; i++)
+	{
+		result.push_back(i + min);
+	}
+
+	// Shuffle
+	std::shuffle(result.begin(), result.end(), engine);
+
+	return result;
+}
+
+std::vector<int> Network::randPowerVector(int length, double exponent, int min, int max) const
+{
+	std::vector<int> result;
+	result.reserve(length + max);
+	double normalization = 0;
+
+	// Calculate normalization
+	for (int x = min; x <= max; x++)
+		normalization += pow(x, -exponent);
+	normalization = 1 / normalization;
+
+	double density;
+	int number;
+
+	// Fill vector
+	for (int x = max; x >= min; x--)
+	{
+		density = pow(x, (-exponent)) * normalization;
+		number = (int)floor(density * length); // Floor vs. round vs. ceil affects total length
+
+		// Secure a tail
+		if (number < 1)
+			number = 1;
+
+		for (int i = 0; i < number; i++)
+			result.push_back(x);
+	}
+
+	// Correct number of elements (subject to rounding variations)
+	while (result.size() > (size_t)length)
+		result.pop_back();
+	while (result.size() < (size_t)length)
+		result.push_back(min);
+
+	// Shuffle
+	std::shuffle(result.begin(), result.end(), engine);
+
+	return result;
+}
+
+/*External functions*/
+
+std::vector<double> testGenome()
+{
+	return std::vector<double>
+	{
+		0.2,
+		1,
+		10,
+		128,
+		2,
+		2,
+		5,
+		2,
+		0.5,
+		-1
+	};
+}
+
+std::vector<double> goodGenome()
+{
+	return std::vector<double>
+	{
+		0.29,
+		1,
+		24,
+		315,
+		1.66352,
+		1.7877,
+		4.61092,
+		2.37324,
+		1.56954,
+		-1
+	};
+}
+
+std::vector<double> veryGoodGenome()
+{
+	return std::vector<double>
+	{
+		0.29,
+		2,
+		8,
+		104,
+		1.69871,
+		1.5153,
+		4.11085,
+		2.55698,
+		0.239477,
+		-1.56041
+	};
+}
 
 /*Tests*/
 
@@ -591,14 +772,14 @@ void testRandNormal()
 	samples.reserve(n);
 
 	for (int i = 0; i < n; i++)
-		samples.push_back(randNormal(0, 5));
+		samples.push_back(randomNormal(0, 5));
 	
 	/*static std::random_device device;
-	static std::mt19937 generator(device());
+	static std::mt19937 engine(device());
 	std::normal_distribution<> normal(0, 5); // This can't be declared static
 
 	for (int i = 0; i < n; i++)
-		samples.push_back(normal(generator));*/
+		samples.push_back(normal(engine));*/
 
 	saveVector("testRandNormal.dat", samples);
 }
@@ -609,25 +790,26 @@ void testVisualize()
 	Moses.visualize2();
 }
 
-void testNetworkCopyCtor()
+void testSeededCtor()
 {
-	Network Adam(4);
-	Network Abel = Network(Adam);
-	std::vector<double> AdamGenome = Adam.exportGenome();
-	std::vector<double> AbelGenome = Abel.exportGenome();
+	Network Adam(1);
+	//Adam.visualize();
 
-	cout << "Genome differences: ";
-	for (size_t i = 0; i < AdamGenome.size(); i++)
-		cout << AdamGenome[i] - AbelGenome[i] << " ";
-
-	std::vector<int> AdamAvalanches = Adam.exportAvalanches();
-	std::vector<int> AbelAvalanches = Abel.exportAvalanches();
+	Network Eve(2);
+	Network Cain;
+	//Network Cain(Eve, Adam, 14);
 	
-	cout << "\nNum Avalanche entries: " << AdamAvalanches.size() << " vs. " << AbelAvalanches.size();
-	cout << "\nAvalanche differences: ";
-	for (size_t i = 0; i < AdamAvalanches.size(); i++)
-		cout << AdamAvalanches[i] - AbelAvalanches[i] << " ";
+	for (int seed = 1; seed < 1000; seed++)
+	{
+		std::cout << seed << "\n";
+		Cain = Network(Eve, Adam, seed);
+	}
+}
 
-	cout << "\nKappa difference:" << Adam.getKappa() - Abel.getKappa();
-	cout << "\n\n";
+void testRandPowerVector()
+{
+	int xMin = 1;
+	int xMax = 20;
+	double alpha = 2;
+	int N = 100;
 }

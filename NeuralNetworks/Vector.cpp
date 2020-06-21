@@ -34,14 +34,10 @@ Vector::Vector(int rows, double lower, double upper)
 void Vector::update(const Vector & source, const std::vector<int> & indeces)
 {
 	if (this->getRows() != source.getRows())
-	{
 		return;
-	}
 
 	for (unsigned int i = 0; i < indeces.size(); i++)
-	{
 		set(indeces[i], source(indeces[i]));
-	}
 }
 
 Vector::Vector(const Vector& top, const Vector& bottom)
@@ -57,9 +53,7 @@ std::vector<int> Vector::find(double threshold) const
 	for (unsigned int i = 0; i < getRows(); i++)
 	{
 		if (get(i) >= threshold)
-		{
 			trues.push_back(i);
-		}
 	}
 	return trues;
 }
@@ -67,16 +61,13 @@ std::vector<int> Vector::find(double threshold) const
 void Vector::copy(const Vector& top, const Vector& bottom)
 {
 	if (top.getRows() + bottom.getRows() != this->getRows())
-	{
 		invalidate();
-	}
 
 	for (unsigned int i = 0; i < this->getRows(); i++)
 	{
 		if (i < top.getRows())
-		{
 			set(i, top.get(i));
-		}
+
 		else
 			set(i, bottom.get(i - top.getRows()));
 	}
@@ -92,29 +83,21 @@ void testVectorEfficiency()
 	// Fastest
 	Vector a(n);
 	for (int i = 0; i < n; i++)
-	{
 		a(i) = i;
-	}
 
 	// Second-fastest
 	std::vector<int> b(n,0);
 	for (int i = 0; i < n; i++)
-	{
 		b[i];
-	}
 
 	// Second-slowest
 	std::vector<int> c;
 	c.reserve(n);
 	for (int i = 0; i < n; i++)
-	{
 		c.push_back(i);
-	}
 
 	// Slowest
 	std::vector<int> d;
 	for (int i = 0; i < n; i++)
-	{
 		d.push_back(i);
-	}
 }

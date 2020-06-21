@@ -103,7 +103,7 @@ int getPreNeuron(int preModule, int neurons, int modules)
 
 int getPreModule(int postModule, int hierarchyDepth)
 {
-	int hierarchyLevel = randPowerDiscrete(2, 1, hierarchyDepth);
+	int hierarchyLevel = randomPowerDiscrete(2, 1, hierarchyDepth);
 	//int hierarchyLevel = randomIntWithLimits(1, hierarchyDepth);
 	//int hierarchyLevel = hierarchyDepth;
 	//if (hierarchyLevel == 5)
@@ -393,7 +393,7 @@ void testPowerLawDiscrete()
 
 	for (int i = 0; i < 10000; i++)
 	{
-		number = randPowerDiscrete(2, 1, 20);
+		number = randomPowerDiscrete(2, 1, 20);
 		//cout << number << "\t";
 		myfile << number << " ";
 	}

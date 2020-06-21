@@ -2,43 +2,44 @@
 
 int randomIntWithLimits(int lower, int upper)
 {
-	static std::random_device device;
-	static std::mt19937 generator(device());
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
 	std::uniform_int_distribution<int> uniform(lower, upper);
 	return uniform(generator);
 }
 
 double randomRealWithLimits(double lower, double upper)
 {
-	static std::random_device device;
-	static std::mt19937 generator(device());
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
 	std::uniform_real_distribution<> uniform(lower, upper);
 	return uniform(generator);
 }
 
-double randUniform()
+double randomUniform()
 {
-	return randomRealWithLimits(0, 1);
+	static thread_local std::mt19937 generator;
+	static thread_local std::uniform_real_distribution<> uniform(0, 1);
+	return uniform(generator);
 }
 
-double randNormal(double mean, double stddev)
+double randomNormal(double mean, double stddev)
 {
-	static std::random_device device;
-	static std::mt19937 generator(device());
-	std::normal_distribution<> normal(mean, stddev); // This can't be declared static
-
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
+	static std::normal_distribution<> normal(mean, stddev); // This can't be declared static
 	return normal(generator);
 }
 
-int randPowerDiscrete(double alpha, int xMin, int xMax)
+int randomPowerDiscrete(double alpha, int xMin, int xMax)
 {
-	return (int)round(randPower(alpha, xMin - 0.5, xMax - 0.5) + 0.5);
+	return (int)round(randomPower(alpha, xMin - 0.5, xMax - 0.5) + 0.5);
 	// Remark: Using "1/2" yields error from implicit rounding of ints
 }
 
-double randPower(double alpha, double xMin, double xMax)
+double randomPower(double alpha, double xMin, double xMax)
 {
-	double u = randUniform();
+	double u = randomUniform();
 	return pow((pow(xMax, 1 - alpha) - pow(xMin, 1 - alpha)) * u + pow(xMin, 1 - alpha), 1 / (double)(1 - alpha));
 }
 
@@ -79,8 +80,8 @@ std::vector<int> powerLawVector(int n, double alpha, int x1, int x0)
 		result.push_back(x0);
 
 	// Shuffle
-	static std::random_device device;
-	static std::default_random_engine generator(device());
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
 	std::shuffle(result.begin(), result.end(), generator);
 
 	return result;
@@ -117,8 +118,8 @@ std::vector<int> histogramToSamples(const std::vector<double>& pdf)
 	}
 
 	// Shuffle
-	static std::random_device device;
-	static std::default_random_engine generator(device());
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
 	std::shuffle(samples.begin(), samples.end(), generator);
 
 	return samples;
@@ -158,7 +159,7 @@ std::vector<int> powerLawVectorSampleAndInsert(int n, double alpha, int x1, int 
 	degrees.reserve(n);
 
 	for (int i = 0; i < n; i++)
-		degrees.push_back(randPowerDiscrete(alpha, x0, x1));
+		degrees.push_back(randomPowerDiscrete(alpha, x0, x1));
 
 	return degrees;
 }
@@ -189,8 +190,8 @@ std::vector<int> randomIntVector(int len, int shift)
 	}
 
 	// Shuffle
-	static std::random_device device;
-	static std::mt19937 generator(device());
+	//static thread_local std::random_device device;
+	static thread_local std::mt19937 generator;
 	std::shuffle(result.begin(), result.end(), generator);
 
 	return result;
@@ -235,7 +236,7 @@ void testRandPowerDiscrete()
 	std::vector<int> vec(n);
 	for (int i = 0; i < n; i++)
 	{
-		vec[i] = randPowerDiscrete(2, 1, 100);
+		vec[i] = randomPowerDiscrete(2, 1, 100);
 	}
 	saveVector("testRandPowerDiscrete.dat", vec);
 }

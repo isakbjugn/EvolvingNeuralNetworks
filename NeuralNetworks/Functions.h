@@ -10,10 +10,10 @@
 
 int randomIntWithLimits(int lower, int upper);
 double randomRealWithLimits(double lower, double upper);
-double randUniform();
-double randNormal(double mean, double stddev);
-int randPowerDiscrete(double alpha, int xMin, int xMax);
-double randPower(double alpha, double xMin, double xMax);
+double randomUniform();
+double randomNormal(double mean, double stddev);
+int randomPowerDiscrete(double alpha, int xMin, int xMax);
+double randomPower(double alpha, double xMin, double xMax);
 std::vector<int> powerLawVector(int n, double alpha, int x1, int x0 = 1);
 std::vector<int> histogramToSamples(const std::vector<double>& pdf);
 std::vector<double> samplesToPdf(const std::vector<int>& samples);

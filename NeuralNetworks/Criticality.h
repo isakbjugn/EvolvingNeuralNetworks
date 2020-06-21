@@ -23,6 +23,7 @@ double maxLikelihood(double g, int x0, int x1);
 std::pair<double, double> searchAlpha(const std::vector<double> &pdf_emp, int x0 = 1);
 std::pair<double, double> searchAlpha(const std::vector<int> &sizes, int x0 = 1);
 std::pair<double, double> clauset(const std::vector<int> &sizes);
+std::pair<double, double> alphaFromKS(const std::vector<int>& sizes, int x0 = 1);
 
 /*Tests*/
 void testReadVector();
