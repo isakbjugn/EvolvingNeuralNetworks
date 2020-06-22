@@ -1,13 +1,13 @@
-2020-06-21-18-23-16
+2020-06-22-03-22-11
 Neurons: 512
 Duration: 2000
-Inhibition ratio: 0.21
-Hierarchical levels: 3
-Minimum degree:7
-Maximum degree:69
-Beta:1.90449
-Gamma:2.36892
-Std of noise to excitatory neurons: 4.37339
-Std of noise to inhibitory neurons: 1.31167
-Maximum weight of excitatory neurons: 0.884201
-Maximum weight of inhibitory neurons: -0.198415
+Inhibition ratio: 0.24
+Hierarchical levels: 1
+Minimum degree:8
+Maximum degree:324
+Beta:1.23663
+Gamma:2.45626
+Std of noise to excitatory neurons: 4.47768
+Std of noise to inhibitory neurons: 1.1732
+Maximum weight of excitatory neurons: 0.80531
+Maximum weight of inhibitory neurons: -0.289208

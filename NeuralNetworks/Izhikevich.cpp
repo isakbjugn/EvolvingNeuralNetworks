@@ -2,7 +2,7 @@
 
 void izhikevich()
 {
-	int N = 1000, Ne = 800, Ni = 200;
+	int N = 100, Ne = 80, Ni = 20;
 	int duration = 1000; // Number of milliseconds
 
 	// Random vectors
@@ -17,6 +17,7 @@ void izhikevich()
 
 	// Synaptic weights
 	Matrix S = Matrix(N, Ne, 0, 0.5).expand(Matrix(N, Ni, -1, 0));
+	std::cout << "S:\n" << S << "\n";
 
 	// Activity variables
 	Vector v = Vector(N, -65);
@@ -85,22 +86,19 @@ void updateFirings(std::vector<int> & fireTiming, std::vector<int>& fireNeuron, 
 
 Vector synapticCurrent(const Matrix & S, const std::vector<int> & fired)
 {
-	//cout << "Fired: ";
-	//printVector(fired);
-	//cout << endl << S << endl;
-
 	Vector I = Vector(S.getRows(), 0.0);
 
-	for (unsigned int i = 0; i < S.getRows(); i++)
+	// This is incorrect: Every neuron gets synaptic input, but from wrong weight
+	/*for (unsigned int i = 0; i < S.getRows(); i++)
 	{
 		for (auto it = fired.begin(); it != fired.end(); it++)
 		{
 			I(i) += S(i, *it);
 		}
-	}
+	}*/
 
-	/*
-	int postNeuron;
+	// This is incorrect: Only firing neurons get synaptic input, from all others
+	/*int postNeuron;
 	for (unsigned int i = 0; i < fired.size(); i++)
 	{
 		postNeuron = int(fired[i]);
@@ -108,8 +106,18 @@ Vector synapticCurrent(const Matrix & S, const std::vector<int> & fired)
 		{
 			I(postNeuron) += S(i, j);
 		}
+	}*/
+
+	// Correct: Postsynaptic neurons get input from firing presynaptic neurons
+	for (unsigned int postNeuron = 0; postNeuron < S.getRows(); postNeuron++)
+	{
+		for (auto preNeuron = fired.begin(); preNeuron != fired.end(); preNeuron++)
+		{
+			//I(postNeuron) += S(*preNeuron, postNeuron);
+			I(postNeuron) += S(postNeuron, *preNeuron);
+		}
 	}
-	*/
+
 	return I;
 }
 
@@ -188,7 +196,9 @@ void testSynapticCurrent()
 	fired.push_back(2);
 	Matrix S = Matrix(4, 4);
 	S.populate();
+	S.populate();
 	Vector I = Vector(4);
+	I.populate();
 	I.populate();
 	cout << "I_thal:\n" << I << endl
 		<< "S:\n" << S << endl

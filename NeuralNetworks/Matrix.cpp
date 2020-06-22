@@ -172,8 +172,8 @@ Matrix::Matrix(int rows, int columns, double lower, double upper)
 
 void Matrix::randomize(double lower, double upper)
 {
-	//static thread_local std::random_device device;
-	static thread_local std::mt19937 generator;
+	static thread_local std::random_device device;
+	static thread_local std::mt19937 generator(device());
 	std::uniform_real_distribution<> uniform(lower, upper);
 
 	for (unsigned int i = 0; i < rows*columns; i++)
@@ -182,8 +182,8 @@ void Matrix::randomize(double lower, double upper)
 
 void Matrix::randNormal(double mean, double stddev)
 {
-	//static thread_local std::random_device device;
-	static thread_local std::mt19937 generator;
+	static thread_local std::random_device device;
+	static thread_local std::mt19937 generator(device());
 	std::normal_distribution<> normal(mean, stddev); // This can't be declared static
 
 	for (unsigned int i = 0; i < rows*columns; i++)
@@ -259,6 +259,8 @@ Matrix Matrix::operator-(double rhs) const
 
 Matrix & Matrix::extend(const Matrix & rhs)
 {
+	// Extends vertically: Adds rows
+
 	if (this->columns != rhs.columns)
 	{
 		this->invalidate();
@@ -281,6 +283,8 @@ Matrix & Matrix::extend(const Matrix & rhs)
 
 Matrix & Matrix::expand(const Matrix & rhs)
 {
+	// Expands horisontally: Adds columns
+
 	if (this->rows != rhs.rows)
 	{
 		this->invalidate();

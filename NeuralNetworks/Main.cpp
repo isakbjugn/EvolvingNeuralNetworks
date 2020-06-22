@@ -6,7 +6,6 @@
 #include "Criticality.h"
 #include "Evolution.h"
 
-
 using namespace std::chrono;
 using std::cout;
 
@@ -16,7 +15,9 @@ int main()
 	auto start = high_resolution_clock::now();
 
 	// Run function
-	evolution(10, 10);
+	evolution(30, 30);
+	//testSynapticCurrent();
+	//izhikevich();
 
 	// End timer
 	auto stop = high_resolution_clock::now();
@@ -25,4 +26,3 @@ int main()
 
 	return  0;
 }
-

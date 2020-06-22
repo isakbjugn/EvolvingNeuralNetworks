@@ -84,7 +84,7 @@ void Network::initialize()
 	defineNeurons();
 	initializeIzhikevich();
 	createSynapses();
-	addSynapseWeights();
+	//addSynapseWeights();
 
 	// Reset performance variables
 	clear();
@@ -462,7 +462,6 @@ double Network::analyze() const
 
 void Network::makeNoise(Vector& I) const
 {
-
 	std::normal_distribution<double> exDist(0, exNoise);
 	std::normal_distribution<double> inDist(0, exNoise);
 
@@ -480,11 +479,11 @@ void Network::makeNoise(Vector& I) const
 
 void Network::synapticCurrent(Vector &I, const std::vector<int> &fired) const
 {
-	for (unsigned int i = 0; i < S.getRows(); i++)
+	for (unsigned int postNeuron = 0; postNeuron < S.getRows(); postNeuron++)
 	{
-		for (auto it = fired.begin(); it != fired.end(); it++)
+		for (auto preNeuron = fired.begin(); preNeuron != fired.end(); preNeuron++)
 		{
-			I(i) += S(i, *it);
+			I(postNeuron) += S(*preNeuron, postNeuron);
 		}
 	}
 }
